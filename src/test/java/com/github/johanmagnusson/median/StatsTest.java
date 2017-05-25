@@ -107,4 +107,20 @@ public class StatsTest {
 		final int result = new Stats().calculateMedian(SAMPLE_SEVEN);
 		assertEquals(507, result);
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void shouldThrowExceptionOnEmptyInput() {
+		new Stats().calculateMedian(new int[]{});
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void shouldThrowExceptionOnNullInput() {
+		new Stats().calculateMedian(null);
+	}
+
+	@Test
+	public void shouldHandleSingleElementInput() {
+		final int result = new Stats().calculateMedian(new int[]{17});
+		assertEquals(17, result);
+	}
 }
