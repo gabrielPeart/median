@@ -2,6 +2,11 @@ package com.github.johanmagnusson.median;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Random;
+import java.util.stream.IntStream;
+
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class StatsTest {
@@ -63,33 +68,40 @@ public class StatsTest {
 			407, 703, 392, 415, 124, 703, 119, 552, 967, 663, 299, 343, 484, 753, 548, 678, 326, 339, 698, 277, 597,
 			764, 911 };
 
+	private Stats stats;
+
+	@Before
+	public void setup() {
+		stats = new HistogramStats(new ArrayBackedHistogram(2000));
+	}
+
 	@Test
 	public void verifySampleOne() {
-		final int result = new Stats().calculateMedian(SAMPLE_ONE);
+		final int result = stats.calculateMedian(SAMPLE_ONE);
 		assertEquals(6, result);
 	}
 
 	@Test
 	public void verifySampleTwo() {
-		final int result = new Stats().calculateMedian(SAMPLE_TWO);
+		final int result = stats.calculateMedian(SAMPLE_TWO);
 		assertEquals(2, result);
 	}
 
 	@Test
 	public void verifySampleThree() {
-		final int result = new Stats().calculateMedian(SAMPLE_THREE);
+		final int result = stats.calculateMedian(SAMPLE_THREE);
 		assertEquals(1000, result);
 	}
 
 	@Test
 	public void verifySampleFour() {
-		final int result = new Stats().calculateMedian(SAMPLE_FOUR);
+		final int result = stats.calculateMedian(SAMPLE_FOUR);
 		assertEquals(3, result);
 	}
 
 	@Test
 	public void verifySampleFive() {
-		final int result = new Stats().calculateMedian(SAMPLE_FIVE);
+		final int result = stats.calculateMedian(SAMPLE_FIVE);
 		/*
 		 * Note: expected result in assignment appears to be wrong, lists median as 1000, should be 2000
 		 */
@@ -98,29 +110,54 @@ public class StatsTest {
 
 	@Test
 	public void verifySampleSix() {
-		final int result = new Stats().calculateMedian(SAMPLE_SIX);
+		final int result = stats.calculateMedian(SAMPLE_SIX);
 		assertEquals(58, result);
 	}
 
 	@Test
 	public void verifySampleSeven() {
-		final int result = new Stats().calculateMedian(SAMPLE_SEVEN);
+		final int result = stats.calculateMedian(SAMPLE_SEVEN);
 		assertEquals(507, result);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowExceptionOnEmptyInput() {
-		new Stats().calculateMedian(new int[]{});
+		stats.calculateMedian(new int[]{});
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void shouldThrowExceptionOnNullInput() {
-		new Stats().calculateMedian(null);
+		stats.calculateMedian(null);
 	}
 
 	@Test
 	public void shouldHandleSingleElementInput() {
-		final int result = new Stats().calculateMedian(new int[]{17});
+		final int result = stats.calculateMedian(new int[]{17});
 		assertEquals(17, result);
+	}
+
+	@Test
+	@Ignore
+	public void shouldHandleLargeValues() {
+		final Random r = new Random(19);
+		final int[] input = IntStream
+				.generate(() -> r.nextInt(1001))
+				.limit(100_000_000)
+				.toArray();
+
+		bench(input, new DefaultStats());
+		bench(input, new HistogramStats(new ArrayBackedHistogram(1000)));
+		bench(input, new HistogramStats(new MapBackedHistogram(1000)));
+	}
+
+	private void bench(final int[] input, final Stats stats) {
+		final long start = System.currentTimeMillis();
+		int defaultMedian = stats.calculateMedian(input);
+		final long stop = System.currentTimeMillis();
+		System.out.println(String.format(
+				"Calculated median %d with %s in %s ms",
+				defaultMedian,
+				stats.getClass().getSimpleName(),
+				stop - start));
 	}
 }
