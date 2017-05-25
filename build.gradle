@@ -37,4 +37,4 @@ dependencies {
 }
 
 // Define the main class for the application
-mainClassName = 'App'
+mainClassName = 'com.github.johanmagnusson.median.Application'
